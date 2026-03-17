@@ -16,9 +16,11 @@
             margin: 0;
             color: #475569;
             min-height: 100vh;
+            /* ป้องกันการไฮไลท์สีฟ้าเวลาจิ้มในมือถือ */
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* การ์ดงานส่วนรวม: ฟ้าพาสเทล */
         .glass-card {
             background: rgba(219, 234, 254, 0.95);
             backdrop-filter: blur(8px);
@@ -27,6 +29,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
+        /* การ์ดงานส่วนตัว: ดำ-ชมพู */
         .private-card {
             background: #1e293b; 
             border-radius: 20px;
@@ -35,6 +38,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
+        /* รายการงานแต่ละอัน */
         .task-item { 
             display: flex; 
             align-items: flex-start; 
@@ -46,6 +50,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
+        /* ปุ่มติ๊ก: วงกลมใหญ่ จิ้มง่าย */
         .custom-check {
             appearance: none;
             width: 28px;
@@ -56,7 +61,6 @@
             background: white;
             flex-shrink: 0;
             margin-top: 2px;
-            position: relative;
         }
         .custom-check:checked {
             background: #22c55e;
@@ -66,9 +70,8 @@
             content: '✓';
             color: white;
             position: absolute;
-            left: 50%;
-            top: 45%;
-            transform: translate(-50%, -50%);
+            left: 6px;
+            top: 1px;
             font-size: 16px;
             font-weight: bold;
         }
@@ -89,6 +92,7 @@
             font-weight: 500;
         }
 
+        /* ซ่อน Scrollbar ของปุ่ม Filter */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -96,7 +100,7 @@
 <body>
 
     <!-- Top Bar -->
-    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3 shadow-sm">
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-bottom border-slate-100 px-4 py-3 shadow-sm">
         <div class="max-w-xl mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-xl font-bold text-slate-700">ClassFlow.</h1>
@@ -110,9 +114,9 @@
 
     <div class="max-w-xl mx-auto px-4 pt-6 pb-24">
         
-        <!-- Section: Add Task -->
+        <!-- Section: Add Task (Mobile Stack) -->
         <div class="space-y-6 mb-10">
-            <!-- Public Tasks -->
+            <!-- ประกาศงานส่วนรวม -->
             <div class="glass-card p-5">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="text-xl">📢</span>
@@ -129,7 +133,7 @@
                 </div>
             </div>
 
-            <!-- Private Assign -->
+            <!-- งานส่วนตัว -->
             <div class="private-card p-5">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="text-xl">🔐</span>
@@ -141,7 +145,7 @@
             </div>
         </div>
 
-        <!-- Tabs Filter -->
+        <!-- Tabs Filter (ปัดซ้ายขวาได้ในมือถือ) -->
         <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
             <button onclick="setFilter('all')" id="btn-all" class="tab-btn tab-active shadow-sm flex-shrink-0">ทั้งหมด</button>
             <button onclick="setFilter('mine')" id="btn-mine" class="tab-btn shadow-sm flex-shrink-0">งานของฉัน ✨</button>
@@ -155,6 +159,7 @@
             </div>
         </div>
         
+        <!-- Task List Area -->
         <div id="todo-list" class="space-y-3 min-h-[100px]"></div>
         
         <!-- Completed Section -->
@@ -165,6 +170,7 @@
     </div>
 
     <script>
+        // --- Firebase Config (ห้ามเปลี่ยน) ---
         const firebaseConfig = {
             databaseURL: "https://classflow-6e029-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "classflow-6e029"
@@ -222,30 +228,26 @@
                         const priColor = t.priority == 3 ? 'bg-rose-100 text-rose-600' : t.priority == 2 ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600';
                         const isPrivate = t.type === 'private';
                         
-                        // Check if current user is the owner to show delete button
-                        const deleteBtn = (t.sender === currentUser) ? `
-                            <button onclick="del('${id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 p-2 active:scale-125 transition-transform">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        ` : '';
-
                         const html = `
                             <div class="task-item relative ${isPrivate ? 'border-l-4 border-l-pink-400 bg-pink-50/30' : ''}">
                                 <div class="mr-4 relative">
                                     <input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${id}', ${t.isDone})">
                                 </div>
-                                <div class="flex-1 min-w-0 pr-10">
+                                <div class="flex-1 min-w-0 pr-6">
                                     <div class="flex items-center gap-1.5 mb-1">
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${priColor}">${t.priority == 3 ? 'ด่วนมาก' : t.priority == 2 ? 'ด่วน' : 'ปกติ'}</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${priColor}">${t.priority == 3 ? 'ด่วน' : t.priority == 2 ? 'ด่วน' : 'ปกติ'}</span>
                                         <span class="text-[10px] text-slate-400 truncate uppercase">
                                             ${isPrivate ? `SECRET FROM ${t.sender}` : `BY ${t.sender}`}
                                         </span>
                                     </div>
                                     <p class="text-[15px] leading-snug ${t.isDone ? 'line-through text-slate-300 italic' : 'text-slate-600 font-medium'} break-words">${t.text}</p>
                                 </div>
-                                ${deleteBtn}
+                                <!-- ถังขยะแดงชัดเจน -->
+                                <button onclick="del('${id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 p-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>`;
                         
                         if (t.isDone) doneDiv.innerHTML += html; 
@@ -276,20 +278,7 @@
         }
 
         function toggle(id, status) { db.ref('tasks/'+id).update({ isDone: !status }); }
-
-        function del(id) {
-            db.ref('tasks/' + id).once('value').then((snap) => {
-                const task = snap.val();
-                if (task && task.sender === currentUser) {
-                    if (confirm("จะลบงานที่คุณสร้างใช่ไหม?")) {
-                        db.ref('tasks/' + id).remove();
-                    }
-                } else {
-                    alert("คุณไม่มีสิทธิ์ลบงานของคนอื่นนะ!");
-                }
-            });
-        }
-
+        function del(id) { if(confirm("ลบงานนี้ใช่ไหมเพื่อน?")) db.ref('tasks/'+id).remove(); }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 
         loadTasks();
