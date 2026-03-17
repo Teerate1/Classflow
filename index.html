@@ -3,166 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ClassFlow - Mobile Version</title>
+    <title>ClassFlow - Private Copy Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
-        
         body { 
             background: linear-gradient(135deg, #fef08a 0%, #fed7aa 50%, #fbcfe8 100%);
             font-family: 'Kanit', sans-serif; 
-            margin: 0;
-            color: #475569;
             min-height: 100vh;
-            /* ป้องกันการไฮไลท์สีฟ้าเวลาจิ้มในมือถือ */
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* การ์ดงานส่วนรวม: ฟ้าพาสเทล */
-        .glass-card {
-            background: rgba(219, 234, 254, 0.95);
-            backdrop-filter: blur(8px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        /* การ์ดงานส่วนตัว: ดำ-ชมพู */
-        .private-card {
-            background: #1e293b; 
-            border-radius: 20px;
-            border: 2px solid #f472b6;
-            color: white;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
-
-        /* รายการงานแต่ละอัน */
-        .task-item { 
-            display: flex; 
-            align-items: flex-start; 
-            padding: 16px; 
-            background: white; 
-            border-radius: 18px; 
-            margin-bottom: 12px; 
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-
-        /* ปุ่มติ๊ก: วงกลมใหญ่ จิ้มง่าย */
-        .custom-check {
-            appearance: none;
-            width: 28px;
-            height: 28px;
-            border: 2.5px solid #cbd5e1;
-            border-radius: 50%;
-            cursor: pointer;
-            background: white;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        .custom-check:checked {
-            background: #22c55e;
-            border-color: #22c55e;
-        }
-        .custom-check:checked::after {
-            content: '✓';
-            color: white;
-            position: absolute;
-            left: 6px;
-            top: 1px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .tab-btn { 
-            padding: 10px 20px; 
-            border-radius: 12px; 
-            font-size: 14px; 
-            background: white;
-            color: #64748b;
-            white-space: nowrap;
-            transition: 0.2s;
-        }
-
-        .tab-active { 
-            background: #475569;
-            color: white; 
-            font-weight: 500;
-        }
-
-        /* ซ่อน Scrollbar ของปุ่ม Filter */
+        .glass-card { background: rgba(219, 234, 254, 0.95); backdrop-filter: blur(8px); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.6); }
+        .private-card { background: #1e293b; border-radius: 20px; border: 2px solid #f472b6; color: white; }
+        .task-item { display: flex; align-items: flex-start; padding: 16px; background: white; border-radius: 18px; margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative; }
+        .custom-check { appearance: none; width: 28px; height: 28px; border: 2.5px solid #cbd5e1; border-radius: 50%; cursor: pointer; background: white; flex-shrink: 0; margin-top: 2px; position: relative; }
+        .custom-check:checked { background: #22c55e; border-color: #22c55e; }
+        .custom-check:checked::after { content: '✓'; color: white; position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); font-size: 16px; font-weight: bold; }
+        .tab-btn { padding: 10px 20px; border-radius: 12px; font-size: 14px; background: white; color: #64748b; white-space: nowrap; }
+        .tab-active { background: #475569; color: white; font-weight: 500; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
 
-    <!-- Top Bar -->
-    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-bottom border-slate-100 px-4 py-3 shadow-sm">
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3 shadow-sm">
         <div class="max-w-xl mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-xl font-bold text-slate-700">ClassFlow.</h1>
-                <p id="user-display-small" class="text-[10px] text-slate-400 font-medium uppercase tracking-tight"></p>
+                <p id="user-display-small" class="text-[10px] text-slate-400 font-medium uppercase"></p>
             </div>
-            <button onclick="logout()" class="text-[11px] font-bold text-rose-500 border-2 border-rose-400 px-3 py-1.5 rounded-lg active:bg-rose-500 active:text-white transition-all">
-                LOGOUT
-            </button>
+            <button onclick="logout()" class="text-[11px] font-bold text-rose-500 border-2 border-rose-400 px-3 py-1.5 rounded-lg">LOGOUT</button>
         </div>
     </nav>
 
     <div class="max-w-xl mx-auto px-4 pt-6 pb-24">
         
-        <!-- Section: Add Task (Mobile Stack) -->
         <div class="space-y-6 mb-10">
-            <!-- ประกาศงานส่วนรวม -->
+            <!-- ประกาศงานส่วนรวม (จะถูก Copy ไปหาทุกคน) -->
             <div class="glass-card p-5">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="text-xl">📢</span>
-                    <h3 class="font-bold text-sm text-blue-700 uppercase tracking-wide">Public Tasks</h3>
+                    <h3 class="font-bold text-sm text-blue-700 uppercase">Public Announcement</h3>
                 </div>
-                <input type="text" id="commu-input" class="w-full bg-white border border-blue-200 rounded-xl p-4 text-sm mb-3 outline-none focus:ring-2 ring-blue-300 transition-all" placeholder="มีงานอะไรต้องทำบ้าง...">
+                <input type="text" id="commu-input" class="w-full bg-white border border-blue-200 rounded-xl p-4 text-sm mb-3 outline-none" placeholder="ประกาศงานให้เพื่อนทุกคน...">
                 <div class="flex flex-col gap-3">
-                    <select id="commu-priority" class="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm outline-none">
-                        <option value="1">🟢 ความสำคัญ: ปกติ</option>
-                        <option value="2">🟡 ความสำคัญ: ด่วน</option>
-                        <option value="3">🔴 ความสำคัญ: ด่วนมาก</option>
+                    <select id="commu-priority" class="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm">
+                        <option value="1">🟢 ปกติ</option>
+                        <option value="2">🟡 ด่วน</option>
+                        <option value="3">🔴 ด่วนมาก</option>
                     </select>
-                    <button onclick="addCommunityTask()" class="w-full bg-blue-500 text-white font-bold py-4 rounded-xl text-sm shadow-lg active:scale-95 transition-all">ประกาศงานลงบอร์ด</button>
+                    <button onclick="addPublicTaskToAll()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl text-sm shadow-lg active:scale-95 transition-all">ส่งงานให้ทุกคนในห้อง</button>
                 </div>
             </div>
 
-            <!-- งานส่วนตัว -->
+            <!-- ส่งงานส่วนตัว (ส่งเฉพาะคน) -->
             <div class="private-card p-5">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="text-xl">🔐</span>
-                    <h3 class="font-bold text-sm text-pink-300 uppercase tracking-wide">Private Assign</h3>
+                    <h3 class="font-bold text-sm text-pink-300 uppercase">Private Assign</h3>
                 </div>
                 <select id="friend-select" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-4 mb-3 text-white text-sm outline-none"></select>
-                <input type="text" id="private-input" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-4 text-white text-sm mb-4 outline-none placeholder:text-slate-400" placeholder="ฝากงานให้เพื่อนคนนี้...">
+                <input type="text" id="private-input" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-4 text-white text-sm mb-4 outline-none" placeholder="ฝากงานให้เพื่อนคนนี้คนเดียว...">
                 <button onclick="addPrivateTask()" class="w-full bg-pink-500 text-white font-bold py-4 rounded-xl text-sm active:scale-95 transition-all">ส่งงานส่วนตัว</button>
             </div>
         </div>
 
-        <!-- Tabs Filter (ปัดซ้ายขวาได้ในมือถือ) -->
-        <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
-            <button onclick="setFilter('all')" id="btn-all" class="tab-btn tab-active shadow-sm flex-shrink-0">ทั้งหมด</button>
-            <button onclick="setFilter('mine')" id="btn-mine" class="tab-btn shadow-sm flex-shrink-0">งานของฉัน ✨</button>
-            <button onclick="setFilter('sent')" id="btn-sent" class="tab-btn shadow-sm flex-shrink-0">ประวัติส่ง</button>
-        </div>
-
         <div class="flex justify-between items-center mb-4 px-1">
-            <h2 class="font-bold text-slate-700">รายการงาน</h2>
-            <div class="flex items-center gap-2">
-                <span id="count-todo" class="text-[11px] bg-slate-700 text-white px-3 py-1 rounded-full font-bold">0</span>
-            </div>
+            <h2 class="font-bold text-slate-700 text-lg">งานส่วนตัวของฉัน</h2>
+            <span id="count-todo" class="bg-slate-700 text-white px-3 py-1 rounded-full text-xs font-bold">0</span>
         </div>
         
-        <!-- Task List Area -->
         <div id="todo-list" class="space-y-3 min-h-[100px]"></div>
         
-        <!-- Completed Section -->
         <div class="mt-12 p-4 bg-white/30 rounded-3xl border border-white/50">
             <h3 class="text-slate-500 font-bold text-[11px] uppercase tracking-widest mb-4">ทำเสร็จแล้ว</h3>
             <div id="done-list" class="opacity-60 space-y-2"></div>
@@ -170,7 +84,6 @@
     </div>
 
     <script>
-        // --- Firebase Config (ห้ามเปลี่ยน) ---
         const firebaseConfig = {
             databaseURL: "https://classflow-6e029-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "classflow-6e029"
@@ -179,35 +92,71 @@
         const db = firebase.database();
 
         const currentUser = localStorage.getItem('user_name');
-        const currentNo = localStorage.getItem('user_no');
-        let currentFilter = 'all';
+        const currentNo = localStorage.getItem('user_no'); // สำคัญมาก: ต้องใช้เลขที่เพื่อแยกโฟลเดอร์งาน
 
-        if (!currentUser) { window.location.href = 'login.html'; }
+        if (!currentUser || !currentNo) { window.location.href = 'login.html'; }
         document.getElementById('user-display-small').innerText = `${currentUser} เลขที่ ${currentNo}`;
 
-        function setFilter(type) {
-            currentFilter = type;
-            ['all', 'mine', 'sent'].forEach(t => {
-                document.getElementById('btn-' + t).className = (t === type) ? 'tab-btn tab-active shadow-sm flex-shrink-0' : 'tab-btn shadow-sm flex-shrink-0';
-            });
-            loadTasks();
-        }
-
+        // ดึงรายชื่อนักเรียนทั้งหมดมาใส่ใน Select
         db.ref('students').on('value', (snap) => {
             const students = snap.val() || {};
             const select = document.getElementById('friend-select');
-            select.innerHTML = '<option value="" disabled selected>เลือกเพื่อนที่จะส่งให้...</option>';
+            select.innerHTML = '<option value="" disabled selected>เลือกเพื่อน...</option>';
             Object.entries(students).forEach(([no, data]) => {
                 if(data.name !== currentUser) {
-                    const opt = new Option(`${no}. ${data.name}`, data.name);
+                    const opt = new Option(`${no}. ${data.name}`, no); // value เป็นเลขที่ (no)
                     select.add(opt);
                 }
             });
         });
 
-        function loadTasks() {
-            db.ref('tasks').off();
-            db.ref('tasks').on('value', (snap) => {
+        // ประกาศงานหาทุกคน (Copy งานไปใส่โฟลเดอร์ของทุกคน)
+        async function addPublicTaskToAll() {
+            const input = document.getElementById('commu-input');
+            const pri = document.getElementById('commu-priority').value;
+            const text = input.value.trim();
+            if(!text) return;
+
+            const studentsSnap = await db.ref('students').once('value');
+            const students = studentsSnap.val() || {};
+
+            // วนลูปส่งให้ทุกคน
+            const promises = Object.keys(students).map(no => {
+                return db.ref(`user_tasks/${no}`).push({
+                    text: text,
+                    sender: currentUser,
+                    priority: pri,
+                    isDone: false,
+                    type: 'public'
+                });
+            });
+
+            await Promise.all(promises);
+            input.value = '';
+            alert("ประกาศงานเรียบร้อย! งานถูกส่งไปยังรายการของทุกคนแล้ว");
+        }
+
+        // ส่งงานส่วนตัว (Copy ไปใส่โฟลเดอร์เพื่อนคนเดียว)
+        function addPrivateTask() {
+            const targetNo = document.getElementById('friend-select').value;
+            const input = document.getElementById('private-input');
+            const text = input.value.trim();
+            if(targetNo && text) {
+                db.ref(`user_tasks/${targetNo}`).push({
+                    text: text,
+                    sender: currentUser,
+                    priority: 2,
+                    isDone: false,
+                    type: 'private'
+                });
+                input.value = '';
+                alert("ส่งงานให้เพื่อนแล้ว!");
+            }
+        }
+
+        // โหลดงาน "เฉพาะของตัวเอง" เท่านั้น
+        function loadMyTasks() {
+            db.ref(`user_tasks/${currentNo}`).on('value', (snap) => {
                 const data = snap.val() || {};
                 const todoDiv = document.getElementById('todo-list');
                 const doneDiv = document.getElementById('done-list');
@@ -215,73 +164,37 @@
                 let count = 0;
 
                 Object.entries(data).reverse().forEach(([id, t]) => {
-                    let isVisible = false;
-                    if (currentFilter === 'all') {
-                        isVisible = t.type === 'normal' || (t.type === 'private' && t.target === currentUser);
-                    } else if (currentFilter === 'mine') {
-                        isVisible = (t.type === 'private' && t.target === currentUser);
-                    } else if (currentFilter === 'sent') {
-                        isVisible = (t.sender === currentUser);
-                    }
-
-                    if (isVisible) {
-                        const priColor = t.priority == 3 ? 'bg-rose-100 text-rose-600' : t.priority == 2 ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600';
-                        const isPrivate = t.type === 'private';
-                        
-                        const html = `
-                            <div class="task-item relative ${isPrivate ? 'border-l-4 border-l-pink-400 bg-pink-50/30' : ''}">
-                                <div class="mr-4 relative">
-                                    <input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${id}', ${t.isDone})">
+                    const priColor = t.priority == 3 ? 'bg-rose-100 text-rose-600' : t.priority == 2 ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600';
+                    const html = `
+                        <div class="task-item ${t.type === 'private' ? 'border-l-4 border-l-pink-400 bg-pink-50/30' : ''}">
+                            <div class="mr-4">
+                                <input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggleTask('${id}', ${t.isDone})">
+                            </div>
+                            <div class="flex-1 min-w-0 pr-8">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${priColor}">${t.priority == 3 ? 'ด่วนมาก' : t.priority == 2 ? 'ด่วน' : 'ปกติ'}</span>
+                                    <span class="text-[10px] text-slate-400 uppercase">FROM: ${t.sender}</span>
                                 </div>
-                                <div class="flex-1 min-w-0 pr-6">
-                                    <div class="flex items-center gap-1.5 mb-1">
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${priColor}">${t.priority == 3 ? 'ด่วน' : t.priority == 2 ? 'ด่วน' : 'ปกติ'}</span>
-                                        <span class="text-[10px] text-slate-400 truncate uppercase">
-                                            ${isPrivate ? `SECRET FROM ${t.sender}` : `BY ${t.sender}`}
-                                        </span>
-                                    </div>
-                                    <p class="text-[15px] leading-snug ${t.isDone ? 'line-through text-slate-300 italic' : 'text-slate-600 font-medium'} break-words">${t.text}</p>
-                                </div>
-                                <!-- ถังขยะแดงชัดเจน -->
-                                <button onclick="del('${id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 p-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </div>`;
-                        
-                        if (t.isDone) doneDiv.innerHTML += html; 
-                        else { todoDiv.innerHTML += html; count++; }
-                    }
+                                <p class="text-[15px] ${t.isDone ? 'line-through text-slate-300 italic' : 'text-slate-600 font-medium'} break-words">${t.text}</p>
+                            </div>
+                            <button onclick="deleteTask('${id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-rose-400 p-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>`;
+                    
+                    if (t.isDone) doneDiv.innerHTML += html; 
+                    else { todoDiv.innerHTML += html; count++; }
                 });
                 document.getElementById('count-todo').innerText = count;
-                if(count === 0) todoDiv.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm italic">ไม่มีงานค้างเลย สุดยอด!</div>';
+                if(count === 0) todoDiv.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm italic">ไม่มีงานค้างเลย!</div>';
             });
         }
 
-        function addCommunityTask() {
-            const el = document.getElementById('commu-input');
-            const pri = document.getElementById('commu-priority').value;
-            if(el.value.trim()) {
-                db.ref('tasks').push({ text: el.value.trim(), type: 'normal', isDone: false, sender: currentUser, priority: pri });
-                el.value = '';
-            }
-        }
-
-        function addPrivateTask() {
-            const target = document.getElementById('friend-select').value;
-            const el = document.getElementById('private-input');
-            if(target && el.value.trim()) {
-                db.ref('tasks').push({ text: el.value.trim(), type: 'private', target: target, sender: currentUser, isDone: false, priority: 2 });
-                el.value = '';
-            }
-        }
-
-        function toggle(id, status) { db.ref('tasks/'+id).update({ isDone: !status }); }
-        function del(id) { if(confirm("ลบงานนี้ใช่ไหมเพื่อน?")) db.ref('tasks/'+id).remove(); }
+        function toggleTask(id, status) { db.ref(`user_tasks/${currentNo}/${id}`).update({ isDone: !status }); }
+        function deleteTask(id) { if(confirm("ลบงานนี้จากรายการของคุณ?")) db.ref(`user_tasks/${currentNo}/${id}`).remove(); }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 
-        loadTasks();
+        loadMyTasks();
     </script>
 </body>
 </html>
