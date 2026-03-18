@@ -39,6 +39,12 @@
     </nav>
 
     <div class="max-w-xl mx-auto px-4 pt-8">
+        <div class="flex gap-2 mb-4">
+             <button onclick="switchForm('commu')" id="btn-form-commu" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-500 text-white shadow-md">ประกาศห้อง</button>
+             <button onclick="switchForm('personal')" id="btn-form-personal" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-emerald-600 border border-emerald-200">จดงานส่วนตัว</button>
+             <button onclick="switchForm('private')" id="btn-form-private" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-pink-600 border border-pink-200">ส่งให้เพื่อน</button>
+        </div>
+
         <div class="space-y-6 mb-8">
             <div id="form-commu" class="white-card p-6">
                 <div class="flex items-center gap-2 mb-4 text-blue-600">
@@ -66,7 +72,7 @@
                 </div>
             </div>
 
-            <div id="form-private" class="private-card p-6">
+            <div id="form-private" class="private-card p-6 hidden">
                 <div class="flex items-center gap-2 mb-4 text-pink-300">
                     <span class="text-2xl">🔐</span><h3 class="font-bold text-sm uppercase text-pink-50">ส่งงานให้เพื่อน</h3>
                 </div>
@@ -108,7 +114,19 @@
         if (!currentUser) { window.location.href = 'login.html'; }
         document.getElementById('user-display-small').innerText = `👤 ${currentUser} • เลขที่ ${currentNo}`;
 
-        // --- AI & Logic ---
+        function switchForm(type) {
+            ['commu', 'personal', 'private'].forEach(t => {
+                document.getElementById('form-'+t).classList.add('hidden');
+                const btn = document.getElementById('btn-form-'+t);
+                btn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white border border-slate-200 text-slate-500";
+            });
+            document.getElementById('form-'+type).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-form-'+type);
+            if(type==='commu') activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-500 text-white shadow-md";
+            if(type==='personal') activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-emerald-500 text-white shadow-md";
+            if(type==='private') activeBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-pink-500 text-white shadow-md";
+        }
+
         const clean = (s) => s.toLowerCase().replace(/\s+/g, "").replace(/[^\u0E00-\u0E7Fa-z0-9]/g, "").replace(/[ะาิีึืุูเแโใไำะ]/g, "");
         const getNumbers = (s) => s.replace(/[^0-9]/g, "");
         function getSimilarity(s1, s2) {
@@ -139,14 +157,16 @@
             return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + " | " + d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + " น.";
         }
 
-        // Actions
         async function addPersonalTask() {
             const text = document.getElementById('personal-input').value.trim();
             const pri = parseInt(document.getElementById('personal-priority').value);
             if(!text) return;
             if(await checkDuplicate(text) && !confirm("🤖 งานนี้เหมือนเคยจดไปแล้ว บันทึกซ้ำไหม?")) return;
-            await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'mine', isDone: false, sender: currentUser, priority: pri, timestamp: Date.now() });
+            await db.ref(`user_tasks/${currentNo}`).push({ 
+                text, type: 'mine', isDone: false, sender: currentUser, priority: pri, timestamp: Date.now() 
+            });
             document.getElementById('personal-input').value = '';
+            alert("บันทึกงานส่วนตัวแล้ว!");
         }
 
         async function addCommunityTask() {
@@ -156,9 +176,14 @@
             if(await checkDuplicate(text) && !confirm("🤖 งานนี้อาจจะซ้ำกับที่ประกาศแล้ว ประกาศอีกไหม?")) return;
             const ts = Date.now(); const requestId = 'REQ' + ts;
             const snap = await db.ref('students').once('value');
-            for (let no in snap.val()) { db.ref(`user_tasks/${no}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, requestId }); }
-            await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, isSentCopy: true, subtype: 'commu', requestId });
-            document.getElementById('commu-input').value = ''; alert("ประกาศสำเร็จ!");
+            for (let no in snap.val()) { 
+                db.ref(`user_tasks/${no}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, requestId }); 
+            }
+            await db.ref(`user_tasks/${currentNo}`).push({ 
+                text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, isSentCopy: true, subtype: 'commu', requestId 
+            });
+            document.getElementById('commu-input').value = ''; 
+            alert("ประกาศสำเร็จ!");
         }
 
         async function addPrivateTask() {
@@ -170,11 +195,13 @@
             const ts = Date.now(); const requestId = 'REQ' + ts;
             const taskData = { text, type: 'private', sender: currentUser, isDone: false, priority: pri, timestamp: ts, requestId };
             await db.ref(`user_tasks/${targetNo}`).push(taskData);
-            await db.ref(`user_tasks/${currentNo}`).push({ ...taskData, isSentCopy: true, subtype: 'private', receiverName: targetName, receiverNo: targetNo, requestId });
-            document.getElementById('private-input').value = ''; alert("ส่งแล้ว!");
+            await db.ref(`user_tasks/${currentNo}`).push({ 
+                ...taskData, isSentCopy: true, subtype: 'private', receiverName: targetName, receiverNo: targetNo, requestId 
+            });
+            document.getElementById('private-input').value = ''; 
+            alert("ส่งแล้ว!");
         }
 
-        // --- ระบบโหวตลบงานซ้ำ ---
         async function voteDuplicate(requestId) {
             if (!confirm("ต้องการโหวตลบงานซ้ำนี้ใช่ไหม? (ครบ 3 โหวตระบบลบให้ทุกคน)")) return;
             const voteRef = db.ref(`reports/${requestId}/${currentNo}`);
@@ -209,25 +236,39 @@
                     .sort((a, b) => (b.priority - a.priority) || (a.timestamp - b.timestamp));
 
                 tasks.forEach((t) => {
-                    let isVisible = (currentFilter === 'all' && !t.isSentCopy) || 
-                                    (currentFilter === 'mine' && (t.type === 'mine' || t.type === 'private') && !t.isSentCopy) ||
-                                    (currentFilter === 'sent' && t.isSentCopy);
+                    // แก้ไข Logic Filter ใหม่
+                    let isVisible = false;
+                    if (currentFilter === 'all') {
+                        if (!t.isSentCopy) isVisible = true;
+                    } else if (currentFilter === 'mine') {
+                        // งานของฉัน = งานที่จดเอง หรือ งานที่ได้รับจากคนอื่น (ไม่ใช่ Copy ที่เราส่งไป)
+                        if (!t.isSentCopy) isVisible = true;
+                    } else if (currentFilter === 'sent') {
+                        // ประวัติส่ง = เฉพาะอันที่เป็น SentCopy
+                        if (t.isSentCopy) isVisible = true;
+                    }
 
                     if (isVisible) {
                         const border = t.type === 'private' ? 'border-l-[6px] border-pink-500' : 
                                      (t.type === 'mine' ? 'border-l-[6px] border-emerald-500' : 'border-l-[6px] border-blue-500');
                         const labelClass = t.type === 'private' ? 'bg-pink-100 text-pink-700' : 
-                                         (t.type === 'mine' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700');
+                                           (t.type === 'mine' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700');
                         const badgeColor = t.priority == 3 ? "bg-rose-500" : (t.priority == 2 ? "bg-orange-500" : "bg-emerald-500");
                         
-                        // Action Buttons UI
+                        let labelText = '';
+                        if (t.isSentCopy) {
+                            labelText = t.subtype === 'commu' ? '📢 ประกาศส่วนรวม' : `🔐 ส่งถึง: ${t.receiverName || 'เพื่อน'}`;
+                        } else {
+                            labelText = t.type === 'mine' ? '📝 จดเอง' : `👤 จาก: ${t.sender}`;
+                        }
+
                         let actions = `<div class="mt-4 flex flex-wrap gap-2">`;
                         if (t.isSentCopy) {
                             actions += `<button onclick="unsend('${t.id}','${t.requestId}','${t.subtype}','${t.receiverNo}')" class="text-[11px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg active:scale-95">✕ ยกเลิกส่ง</button>`;
                         } else {
                             actions += `<button onclick="del('${t.id}')" class="text-[11px] font-bold text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg active:scale-95">✕ ลบ</button>`;
                             if (t.type === 'normal' && t.requestId) {
-                                actions += `<button onclick="voteDuplicate('${t.requestId}')" class="text-[11px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg active:scale-95 hover:bg-orange-600 hover:text-white transition-all">🚩 แจ้งซ้ำ/รายงาน</button>`;
+                                actions += `<button onclick="voteDuplicate('${t.requestId}')" class="text-[11px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg active:scale-95 hover:bg-orange-600 hover:text-white transition-all">🚩 แจ้งซ้ำ</button>`;
                             }
                         }
                         actions += `</div>`;
@@ -239,7 +280,7 @@
                                     <div class="flex justify-between items-start gap-2 mb-2">
                                         <div class="flex flex-wrap gap-1.5">
                                             <span class="${badgeColor} text-white text-[9px] font-bold px-1.5 py-0.5 rounded">${t.priority == 3 ? '🔥 ด่วนมาก' : t.priority == 2 ? '⚡ ด่วน' : '☘️ ชิวๆ'}</span>
-                                            <span class="${labelClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${t.isSentCopy ? (t.subtype==='commu'?'📢 ประกาศ':'🔐 ส่งถึงเพื่อน') : (t.type==='mine'?'📝 จดเอง':`👤 จาก ${t.sender}`)}</span>
+                                            <span class="${labelClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${labelText}</span>
                                         </div>
                                         <span class="text-[10px] text-slate-400 font-bold whitespace-nowrap">${formatDateTime(t.timestamp)}</span>
                                     </div>
@@ -255,7 +296,7 @@
         }
 
         async function unsend(id, reqId, sub, rNo) {
-            if(!confirm("ยกเลิกประกาศ?")) return;
+            if(!confirm("ยกเลิกการส่งรายการนี้?")) return;
             await db.ref(`user_tasks/${currentNo}/${id}`).remove();
             if(sub==='commu') {
                 const students = await db.ref('students').once('value');
