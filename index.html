@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ClassFlow AI Safe - Official</title>
+    <title>ClassFlow AI Safe - V2</title>
     <link rel="icon" type="image/png" href="icon1.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
@@ -14,14 +14,12 @@
         .white-card { background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .private-card { background: #1e293b; border-radius: 20px; border: 2px solid #f472b6; color: white; box-shadow: 0 10px 25px rgba(244,114,182,0.2); }
         .personal-card { background: #f0fdf4; border-radius: 20px; border: 2px solid #10b981; color: #064e3b; box-shadow: 0 10px 25px rgba(16,185,129,0.1); }
-        .task-item { display: flex; align-items: flex-start; padding: 18px 16px; background: white; border-radius: 18px; margin-bottom: 12px; border: 1px solid #e2e8f0; position: relative; transition: all 0.2s ease; }
-        .custom-check { appearance: none; width: 32px; height: 32px; border: 2.5px solid #cbd5e1; border-radius: 50%; cursor: pointer; background: white; flex-shrink: 0; margin-top: 2px; position: relative; }
+        .task-item { background: white; border-radius: 18px; margin-bottom: 12px; border: 1px solid #e2e8f0; transition: all 0.2s ease; padding: 16px; }
+        .custom-check { appearance: none; width: 28px; height: 28px; border: 2.5px solid #cbd5e1; border-radius: 50%; cursor: pointer; background: white; flex-shrink: 0; position: relative; }
         .custom-check:checked { background: #22c55e; border-color: #22c55e; }
-        .custom-check:checked::after { content: '✓'; color: white; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: bold; }
+        .custom-check:checked::after { content: '✓'; color: white; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: bold; }
         .tab-btn { padding: 10px 20px; border-radius: 14px; font-size: 14px; font-weight: 500; background: rgba(255,255,255,0.7); color: #64748b; border: 1px solid transparent; }
         .tab-active { background: #475569; color: white; border-color: #475569; box-shadow: 0 4px 10px rgba(71,85,105,0.3); }
-        .loading-ai { animation: pulse 1.5s infinite; color: #8b5cf6; font-weight: bold; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -32,8 +30,8 @@
             <div class="flex items-center gap-3">
                 <img src="icon1.png" alt="Logo" class="w-9 h-9 object-contain rounded-lg shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/591/591844.png'">
                 <div>
-                    <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500">ClassFlow AI.</h1>
-                    <p id="user-display-small" class="text-[11px] text-slate-500 font-medium uppercase tracking-wider"></p>
+                    <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500">ClassFlow.</h1>
+                    <p id="user-display-small" class="text-[11px] text-slate-500 font-medium tracking-wider"></p>
                 </div>
             </div>
             <button onclick="logout()" class="text-xs font-bold text-rose-500 border-2 border-rose-500 px-4 py-2 rounded-xl active:scale-95">LOGOUT</button>
@@ -43,34 +41,26 @@
     <div class="max-w-xl mx-auto px-4 pt-8">
         <div class="space-y-6 mb-8">
             <div id="form-commu" class="white-card p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2 text-blue-600">
-                        <span class="text-2xl">📢</span><h3 class="font-bold text-sm uppercase tracking-wide">ประกาศงานส่วนรวม</h3>
-                    </div>
+                <div class="flex items-center gap-2 mb-4 text-blue-600">
+                    <span class="text-2xl">📢</span><h3 class="font-bold text-sm uppercase">ประกาศงานส่วนรวม</h3>
                 </div>
                 <input type="text" id="commu-input" class="w-full bg-slate-50 border-2 border-slate-100 focus:border-blue-300 rounded-xl p-4 text-[15px] mb-3 outline-none" placeholder="งานนี้ทุกคนต้องทำ...">
                 <div class="flex gap-2">
-                    <select id="commu-priority" class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-3 text-sm outline-none font-medium">
-                        <option value="1">☘️ ชิวๆ</option>
-                        <option value="2">⚡ งานด่วน</option>
-                        <option value="3">🔥 ด่วนมาก!</option>
+                    <select id="commu-priority" class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-3 text-sm outline-none font-medium">
+                        <option value="1">☘️ ชิวๆ</option><option value="2">⚡ งานด่วน</option><option value="3">🔥 ด่วนมาก!</option>
                     </select>
                     <button onclick="addCommunityTask()" class="flex-[1.5] bg-blue-500 text-white font-bold py-3 rounded-xl text-sm active:scale-95">ประกาศ</button>
                 </div>
             </div>
 
             <div id="form-personal" class="personal-card p-6 hidden">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2 text-emerald-600">
-                        <span class="text-2xl">📝</span><h3 class="font-bold text-sm uppercase tracking-wide">จดงานส่วนตัว</h3>
-                    </div>
+                <div class="flex items-center gap-2 mb-4 text-emerald-600">
+                    <span class="text-2xl">📝</span><h3 class="font-bold text-sm uppercase">จดงานส่วนตัว</h3>
                 </div>
-                <input type="text" id="personal-input" class="w-full bg-white border-2 border-emerald-100 focus:border-emerald-400 rounded-xl p-4 text-[15px] mb-3 outline-none" placeholder="จดสิ่งที่ต้องทำ...">
+                <input type="text" id="personal-input" class="w-full bg-white border-2 border-emerald-100 focus:border-emerald-400 rounded-xl p-4 text-[15px] mb-3 outline-none" placeholder="จดสิ่งที่คุณต้องทำ...">
                 <div class="flex gap-2">
-                    <select id="personal-priority" class="flex-1 bg-white border-2 border-emerald-100 rounded-xl px-3 py-3 text-sm outline-none font-medium text-emerald-800">
-                        <option value="1">☘️ ชิวๆ</option>
-                        <option value="2">⚡ งานด่วน</option>
-                        <option value="3">🔥 ด่วนมาก!</option>
+                    <select id="personal-priority" class="flex-1 bg-white border-2 border-emerald-100 rounded-xl px-3 text-sm outline-none font-medium text-emerald-800">
+                        <option value="1">☘️ ชิวๆ</option><option value="2">⚡ งานด่วน</option><option value="3">🔥 ด่วนมาก!</option>
                     </select>
                     <button onclick="addPersonalTask()" class="flex-[1.5] bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm active:scale-95">บันทึกงาน</button>
                 </div>
@@ -78,17 +68,15 @@
 
             <div id="form-private" class="private-card p-6">
                 <div class="flex items-center gap-2 mb-4 text-pink-300">
-                    <span class="text-2xl">🔐</span><h3 class="font-bold text-sm uppercase tracking-wide text-pink-50">ส่งงานให้เพื่อน</h3>
+                    <span class="text-2xl">🔐</span><h3 class="font-bold text-sm uppercase text-pink-50">ส่งงานให้เพื่อน</h3>
                 </div>
-                <select id="friend-select" class="w-full bg-slate-800/50 border-2 border-slate-600 focus:border-pink-400 rounded-xl p-3.5 mb-3 text-white text-sm outline-none font-medium"></select>
-                <input type="text" id="private-input" class="w-full bg-slate-800/50 border-2 border-slate-600 focus:border-pink-400 rounded-xl p-3.5 text-white text-[15px] mb-3 outline-none" placeholder="ฝากงานให้เพื่อนคนนี้...">
+                <select id="friend-select" class="w-full bg-slate-800/50 border-2 border-slate-600 focus:border-pink-400 rounded-xl p-3.5 mb-3 text-white text-sm outline-none"></select>
+                <input type="text" id="private-input" class="w-full bg-slate-800/50 border-2 border-slate-600 focus:border-pink-400 rounded-xl p-3.5 text-white text-[15px] mb-3 outline-none" placeholder="ฝากงานให้เพื่อน...">
                 <div class="flex gap-2">
-                    <select id="private-priority" class="flex-1 bg-slate-800/50 border-2 border-slate-600 rounded-xl px-3 py-3 text-sm text-white outline-none font-medium">
-                        <option value="1">☘️ ชิวๆ</option>
-                        <option value="2">⚡ งานด่วน</option>
-                        <option value="3">🔥 ด่วนมาก!</option>
+                    <select id="private-priority" class="flex-1 bg-slate-800/50 border-2 border-slate-600 rounded-xl px-3 text-sm text-white outline-none">
+                        <option value="1">☘️ ชิวๆ</option><option value="2">⚡ งานด่วน</option><option value="3">🔥 ด่วนมาก!</option>
                     </select>
-                    <button onclick="addPrivateTask()" class="flex-[1.5] bg-pink-500 text-white font-bold py-3 rounded-xl text-sm active:scale-95 shadow-lg">ส่งงาน</button>
+                    <button onclick="addPrivateTask()" class="flex-[1.5] bg-pink-500 text-white font-bold py-3 rounded-xl text-sm active:scale-95">ส่งงาน</button>
                 </div>
             </div>
         </div>
@@ -99,11 +87,11 @@
             <button onclick="setFilter('sent')" id="btn-sent" class="tab-btn">ประวัติส่ง</button>
         </div>
 
-        <h2 class="font-bold text-slate-800 text-xl mb-5" id="list-title">รายการงาน 📝</h2>
+        <h2 class="font-bold text-slate-800 text-xl mb-5">รายการงาน 📝</h2>
         <div id="todo-list" class="space-y-3"></div>
         
         <div id="done-section" class="mt-12 p-5 bg-white/40 rounded-2xl border border-white/50 backdrop-blur-sm">
-            <h3 class="text-slate-400 font-bold text-xs uppercase tracking-wider mb-4">✅ สำเร็จแล้ว</h3>
+            <h3 class="text-slate-400 font-bold text-xs uppercase mb-4">✅ สำเร็จแล้ว</h3>
             <div id="done-list" class="opacity-70 space-y-2"></div>
         </div>
     </div>
@@ -120,35 +108,57 @@
         if (!currentUser) { window.location.href = 'login.html'; }
         document.getElementById('user-display-small').innerText = `👤 ${currentUser} • เลขที่ ${currentNo}`;
 
+        // --- AI & Logic ---
+        const clean = (s) => s.toLowerCase().replace(/\s+/g, "").replace(/[^\u0E00-\u0E7Fa-z0-9]/g, "").replace(/[ะาิีึืุูเแโใไำะ]/g, "");
+        const getNumbers = (s) => s.replace(/[^0-9]/g, "");
+        function getSimilarity(s1, s2) {
+            const str1 = clean(s1); const str2 = clean(s2);
+            if (str1 === str2) return 1.0;
+            const b1 = new Set();
+            for (let i = 0; i < str1.length - 1; i++) b1.add(str1.substring(i, i + 2));
+            let intersect = 0;
+            for (let i = 0; i < str2.length - 1; i++) { if (b1.has(str2.substring(i, i + 2))) intersect++; }
+            return (2.0 * intersect) / (str1.length - 1 + str2.length - 1);
+        }
+
+        async function checkDuplicate(text) {
+            const snap = await db.ref(`user_tasks/${currentNo}`).once('value');
+            const tasks = Object.values(snap.val() || {}).filter(t => !t.isSentCopy).map(t => t.text);
+            const numNew = getNumbers(text);
+            for (let old of tasks) {
+                const numOld = getNumbers(old);
+                if (numNew && numOld && numNew !== numOld) continue; 
+                if (getSimilarity(text, old) > 0.75) return true;
+            }
+            return false;
+        }
+
         function formatDateTime(ts) {
             if(!ts) return "";
             const d = new Date(ts);
-            const dateStr = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-            const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + " น.";
-            return `${dateStr} | ${timeStr}`;
+            return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + " | " + d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + " น.";
         }
 
-        // ACTIONS
+        // Actions
         async function addPersonalTask() {
-            const el = document.getElementById('personal-input');
+            const text = document.getElementById('personal-input').value.trim();
             const pri = parseInt(document.getElementById('personal-priority').value);
-            const text = el.value.trim();
             if(!text) return;
+            if(await checkDuplicate(text) && !confirm("🤖 งานนี้เหมือนเคยจดไปแล้ว บันทึกซ้ำไหม?")) return;
             await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'mine', isDone: false, sender: currentUser, priority: pri, timestamp: Date.now() });
-            el.value = '';
+            document.getElementById('personal-input').value = '';
         }
 
         async function addCommunityTask() {
-            const el = document.getElementById('commu-input');
+            const text = document.getElementById('commu-input').value.trim();
             const pri = parseInt(document.getElementById('commu-priority').value);
-            const text = el.value.trim();
             if(!text) return;
+            if(await checkDuplicate(text) && !confirm("🤖 งานนี้อาจจะซ้ำกับที่ประกาศแล้ว ประกาศอีกไหม?")) return;
+            const ts = Date.now(); const requestId = 'REQ' + ts;
             const snap = await db.ref('students').once('value');
-            const ts = Date.now();
-            const requestId = 'REQ' + ts;
             for (let no in snap.val()) { db.ref(`user_tasks/${no}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, requestId }); }
             await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, isSentCopy: true, subtype: 'commu', requestId });
-            el.value = ''; alert("ประกาศสำเร็จ!");
+            document.getElementById('commu-input').value = ''; alert("ประกาศสำเร็จ!");
         }
 
         async function addPrivateTask() {
@@ -157,25 +167,37 @@
             const text = document.getElementById('private-input').value.trim();
             const pri = parseInt(document.getElementById('private-priority').value);
             if(!targetNo || !text) return alert("เลือกเพื่อนและพิมพ์ข้อความ");
-            const ts = Date.now();
-            const requestId = 'REQ' + ts;
+            const ts = Date.now(); const requestId = 'REQ' + ts;
             const taskData = { text, type: 'private', sender: currentUser, isDone: false, priority: pri, timestamp: ts, requestId };
             await db.ref(`user_tasks/${targetNo}`).push(taskData);
             await db.ref(`user_tasks/${currentNo}`).push({ ...taskData, isSentCopy: true, subtype: 'private', receiverName: targetName, receiverNo: targetNo, requestId });
-            document.getElementById('private-input').value = ''; alert("ส่งงานสำเร็จ!");
+            document.getElementById('private-input').value = ''; alert("ส่งแล้ว!");
         }
 
-        function setFilter(type) {
-            currentFilter = type;
-            ['all', 'mine', 'sent'].forEach(t => document.getElementById('btn-' + t).className = (t === type) ? 'tab-btn tab-active' : 'tab-btn');
-            document.getElementById('form-commu').style.display = (type === 'all') ? 'block' : 'none';
-            document.getElementById('form-personal').style.display = (type === 'mine') ? 'block' : 'none';
-            document.getElementById('form-private').style.display = (type === 'sent') ? 'none' : 'block';
-            document.getElementById('done-section').style.display = (type === 'sent') ? 'none' : 'block';
-            loadTasks();
+        // --- ระบบโหวตลบงานซ้ำ ---
+        async function voteDuplicate(requestId) {
+            if (!confirm("ต้องการโหวตลบงานซ้ำนี้ใช่ไหม? (ครบ 3 โหวตระบบลบให้ทุกคน)")) return;
+            const voteRef = db.ref(`reports/${requestId}/${currentNo}`);
+            await voteRef.set(true);
+            const snap = await db.ref(`reports/${requestId}`).once('value');
+            const count = Object.keys(snap.val() || {}).length;
+            if (count >= 3) {
+                alert("🚩 ครบ 3 โหวต! กำลังลบงานซ้ำจากระบบ...");
+                const students = await db.ref('students').once('value');
+                for (let no in students.val()) { await removeByReq(no, requestId); }
+                await db.ref(`reports/${requestId}`).remove();
+            } else {
+                alert(`โหวตสำเร็จ (${count}/3)`);
+            }
         }
 
-        // --- CORE RENDER WITH SORT & HIGHLIGHT ---
+        async function removeByReq(userNo, reqId) {
+            const snap = await db.ref(`user_tasks/${userNo}`).once('value');
+            const updates = {};
+            Object.entries(snap.val() || {}).forEach(([id, d]) => { if(d.requestId === reqId) updates[id] = null; });
+            if(Object.keys(updates).length) await db.ref(`user_tasks/${userNo}`).update(updates);
+        }
+
         function loadTasks() {
             db.ref(`user_tasks/${currentNo}`).off();
             db.ref(`user_tasks/${currentNo}`).on('value', (snap) => {
@@ -183,65 +205,47 @@
                 const doneDiv = document.getElementById('done-list');
                 todoDiv.innerHTML = ''; doneDiv.innerHTML = '';
                 
-                const rawTasks = snap.val() || {};
-                const tasks = Object.entries(rawTasks)
-                    .map(([id, t]) => ({ id, ...t }))
-                    .sort((a, b) => {
-                        if (b.priority !== a.priority) return b.priority - a.priority; // ความด่วนก่อน
-                        return a.timestamp - b.timestamp; // เก่ากว่าอยู่บน
-                    });
+                const tasks = Object.entries(snap.val() || {}).map(([id, t]) => ({ id, ...t }))
+                    .sort((a, b) => (b.priority - a.priority) || (a.timestamp - b.timestamp));
 
                 tasks.forEach((t) => {
-                    let isVisible = false;
-                    if (currentFilter === 'all') isVisible = !t.isSentCopy;
-                    else if (currentFilter === 'mine') isVisible = (t.type === 'mine' || t.type === 'private') && !t.isSentCopy;
-                    else if (currentFilter === 'sent') isVisible = t.isSentCopy === true;
+                    let isVisible = (currentFilter === 'all' && !t.isSentCopy) || 
+                                    (currentFilter === 'mine' && (t.type === 'mine' || t.type === 'private') && !t.isSentCopy) ||
+                                    (currentFilter === 'sent' && t.isSentCopy);
 
                     if (isVisible) {
-                        let typeLabel = "";
-                        let border = "";
-                        let labelClass = "text-[10px] font-bold px-2 py-0.5 rounded-lg ";
+                        const border = t.type === 'private' ? 'border-l-[6px] border-pink-500' : 
+                                     (t.type === 'mine' ? 'border-l-[6px] border-emerald-500' : 'border-l-[6px] border-blue-500');
+                        const labelClass = t.type === 'private' ? 'bg-pink-100 text-pink-700' : 
+                                         (t.type === 'mine' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700');
+                        const badgeColor = t.priority == 3 ? "bg-rose-500" : (t.priority == 2 ? "bg-orange-500" : "bg-emerald-500");
                         
+                        // Action Buttons UI
+                        let actions = `<div class="mt-4 flex flex-wrap gap-2">`;
                         if (t.isSentCopy) {
-                            typeLabel = t.subtype === 'commu' ? '📢 ประกาศรวม' : `🔐 ส่งถึง: ${t.receiverName}`;
-                            border = t.subtype === 'private' ? 'border-l-[6px] border-pink-500' : 'border-l-[6px] border-blue-500';
-                            labelClass += "bg-slate-100 text-slate-500";
+                            actions += `<button onclick="unsend('${t.id}','${t.requestId}','${t.subtype}','${t.receiverNo}')" class="text-[11px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg active:scale-95">✕ ยกเลิกส่ง</button>`;
                         } else {
-                            if (t.type === 'private') {
-                                typeLabel = `🔐 งานส่วนตัวจาก: ${t.sender}`;
-                                border = 'border-l-[6px] border-pink-500';
-                                labelClass += "bg-pink-100 text-pink-700 ring-2 ring-pink-300"; // ไฮไลท์งานส่วนตัว
-                            } else if (t.type === 'mine') {
-                                typeLabel = '📝 จดเอง';
-                                border = 'border-l-[6px] border-emerald-500';
-                                labelClass += "bg-emerald-100 text-emerald-600";
-                            } else {
-                                typeLabel = `👤 BY ${t.sender}`;
-                                border = 'border-l-[6px] border-blue-500';
-                                labelClass += "bg-blue-100 text-blue-600";
+                            actions += `<button onclick="del('${t.id}')" class="text-[11px] font-bold text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg active:scale-95">✕ ลบ</button>`;
+                            if (t.type === 'normal' && t.requestId) {
+                                actions += `<button onclick="voteDuplicate('${t.requestId}')" class="text-[11px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg active:scale-95 hover:bg-orange-600 hover:text-white transition-all">🚩 แจ้งซ้ำ</button>`;
                             }
                         }
+                        actions += `</div>`;
 
-                        // ขยายฟอนต์เนื้อหางานเป็น 17px
-                        let textStyle = t.priority == 3 ? "text-rose-800 font-bold" : (t.priority == 2 ? "text-orange-800 font-semibold" : "text-slate-800 font-medium");
-                        let badgeColor = t.priority == 3 ? "bg-rose-500 text-white" : (t.priority == 2 ? "bg-orange-500 text-white" : "bg-emerald-500 text-white");
-                        
-                        const delUI = t.isSentCopy 
-                            ? `<button onclick="unsend('${t.id}', '${t.requestId}', '${t.subtype}', '${t.receiverNo}')" class="absolute right-3 top-4 text-[10px] font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200">ยกเลิก</button>`
-                            : `<button onclick="del('${t.id}')" class="absolute right-3 top-4 text-slate-300 p-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" /></svg></button>`;
-                        
                         const html = `
-                            <div class="task-item ${border}">
-                                ${t.isSentCopy ? '' : `<div class="mr-4 mt-1"><input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${t.id}', ${t.isDone})"></div>`}
-                                <div class="flex-1 min-w-0 pr-10">
-                                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeColor}">${t.priority == 3 ? '🔥 ด่วนมาก' : t.priority == 2 ? '⚡ ด่วน' : '☘️ ชิวๆ'}</span>
-                                        <span class="${labelClass} uppercase truncate">${typeLabel}</span>
-                                        <span class="text-[11px] text-slate-400 font-bold ml-auto">${formatDateTime(t.timestamp)}</span>
+                            <div class="task-item ${border} flex gap-4">
+                                ${t.isSentCopy ? '' : `<div><input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${t.id}',${t.isDone})"></div>`}
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start gap-2 mb-2">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <span class="${badgeColor} text-white text-[9px] font-bold px-1.5 py-0.5 rounded">${t.priority == 3 ? '🔥 ด่วนมาก' : t.priority == 2 ? '⚡ ด่วน' : '☘️ ชิวๆ'}</span>
+                                            <span class="${labelClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${t.isSentCopy ? (t.subtype==='commu'?'📢 ประกาศ':'🔐 ส่งถึงเพื่อน') : (t.type==='mine'?'📝 จดเอง':`👤 จาก ${t.sender}`)}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-bold whitespace-nowrap">${formatDateTime(t.timestamp)}</span>
                                     </div>
-                                    <p class="text-[17px] leading-snug ${t.isDone ? 'line-through text-slate-300' : textStyle} break-words">${t.text}</p>
+                                    <p class="text-[16px] leading-relaxed ${t.isDone ? 'line-through text-slate-300' : 'text-slate-800 font-medium'} break-words">${t.text}</p>
+                                    ${actions}
                                 </div>
-                                ${delUI}
                             </div>`;
                         
                         if (t.isDone && currentFilter !== 'sent') { doneDiv.innerHTML += html; } else { todoDiv.innerHTML += html; }
@@ -250,30 +254,26 @@
             });
         }
 
-        async function unsend(logId, requestId, subtype, receiverNo) {
-            if(!confirm("ยกเลิกการส่ง?")) return;
-            await db.ref(`user_tasks/${currentNo}/${logId}`).remove();
-            if(subtype === 'commu') {
-                const snap = await db.ref('students').once('value');
-                for(let no in snap.val()) { await removeByReq(no, requestId); }
-            } else { await removeByReq(receiverNo, requestId); }
-        }
-        async function removeByReq(userNo, reqId) {
-            const snap = await db.ref(`user_tasks/${userNo}`).once('value');
-            const updates = {};
-            Object.entries(snap.val() || {}).forEach(([id, d]) => { if(d.requestId === reqId) updates[id] = null; });
-            await db.ref(`user_tasks/${userNo}`).update(updates);
+        async function unsend(id, reqId, sub, rNo) {
+            if(!confirm("ยกเลิกประกาศ?")) return;
+            await db.ref(`user_tasks/${currentNo}/${id}`).remove();
+            if(sub==='commu') {
+                const students = await db.ref('students').once('value');
+                for(let no in students.val()) await removeByReq(no, reqId);
+            } else await removeByReq(rNo, reqId);
         }
 
         db.ref('students').on('value', snap => {
             const select = document.getElementById('friend-select');
-            select.innerHTML = '<option value="" disabled selected>เลือกเพื่อน...</option>';
-            Object.entries(snap.val() || {}).forEach(([no, data]) => { if(data.name !== currentUser) select.add(new Option(`${no}. ${data.name}`, no)); });
+            select.innerHTML = '<option value="" disabled selected>เลือกเพื่อนที่จะส่งงานให้...</option>';
+            Object.entries(snap.val() || {}).forEach(([no, d]) => { if(d.name !== currentUser) select.add(new Option(`${no}. ${d.name}`, no)); });
         });
 
         function toggle(id, status) { db.ref(`user_tasks/${currentNo}/${id}`).update({ isDone: !status }); }
-        function del(id) { if(confirm("ลบงานนี้?")) db.ref(`user_tasks/${currentNo}/${id}`).remove(); }
+        function del(id) { if(confirm("ลบงานส่วนตัว?")) db.ref(`user_tasks/${currentNo}/${id}`).remove(); }
+        function setFilter(t) { currentFilter = t; ['all','mine','sent'].forEach(b => document.getElementById('btn-'+b).className = b===t ? 'tab-btn tab-active' : 'tab-btn'); loadTasks(); }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        
         setFilter('all');
     </script>
 </body>
