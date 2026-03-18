@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ClassFlow AI Safe - Vercel Edition</title>
-    <link rel="shortcut icon" href="icon1.png" type="image/x-icon">
+    <link rel="icon" type="image/png" href="icon1.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-        body { background: linear-gradient(135deg, #fef08a 0%, #fed7aa 50%, #fbcfe8 100%); font-family: 'Prompt', sans-serif; margin: 0; color: #475569; min-height: 100vh; padding-bottom: 80px; }
+        body { 
+            background: linear-gradient(135deg, #fef08a 0%, #fed7aa 50%, #fbcfe8 100%); 
+            font-family: 'Prompt', sans-serif; 
+            margin: 0; 
+            color: #475569; 
+            min-height: 100vh; 
+            padding-bottom: 80px; 
+        }
         .white-card { background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .private-card { background: #1e293b; border-radius: 20px; border: 2px solid #f472b6; color: white; box-shadow: 0 10px 25px rgba(244,114,182,0.2); }
         .personal-card { background: #f0fdf4; border-radius: 20px; border: 2px solid #10b981; color: #064e3b; box-shadow: 0 10px 25px rgba(16,185,129,0.1); }
@@ -22,17 +29,29 @@
         .tab-active { background: #475569; color: white; border-color: #475569; box-shadow: 0 4px 10px rgba(71,85,105,0.3); }
         .loading-ai { animation: pulse 1.5s infinite; color: #8b5cf6; font-weight: bold; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-white/50 px-4 py-4 shadow-sm">
         <div class="max-w-xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500">ClassFlow AI.</h1>
-                <p id="user-display-small" class="text-[11px] text-slate-500 font-medium uppercase tracking-wider"></p>
+            <div class="flex items-center gap-2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM14 17H7V15H14V17ZM17 13H7V11H17V13ZM17 9H7V7H17V9Z" fill="url(#grad1)"/>
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div>
+                    <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500">ClassFlow AI.</h1>
+                    <p id="user-display-small" class="text-[10px] text-slate-500 font-medium uppercase tracking-wider"></p>
+                </div>
             </div>
-            <button onclick="logout()" class="text-xs font-bold text-rose-500 border-2 border-rose-500 px-4 py-2 rounded-xl hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95">LOGOUT</button>
+            <button onclick="logout()" class="text-xs font-bold text-rose-500 border-2 border-rose-500 px-4 py-2 rounded-xl hover:bg-rose-500 hover:text-white transition-all active:scale-95">LOGOUT</button>
         </div>
     </nav>
 
@@ -72,7 +91,7 @@
                         <option value="2">⚡ งานด่วน</option>
                         <option value="3">🔥 ด่วนมาก!</option>
                     </select>
-                    <button id="btn-personal" onclick="addPersonalTask()" class="flex-[1.5] bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm active:scale-95 shadow-lg shadow-emerald-200 transition-all">บันทึกงาน</button>
+                    <button id="btn-personal" onclick="addPersonalTask()" class="flex-[1.5] bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm active:scale-95 transition-all">บันทึกงาน</button>
                 </div>
             </div>
 
@@ -102,6 +121,7 @@
 
         <h2 class="font-bold text-slate-800 text-xl mb-5" id="list-title">รายการงาน 📝</h2>
         <div id="todo-list" class="space-y-3"></div>
+        
         <div id="done-section" class="mt-12 p-5 bg-white/40 rounded-2xl border border-white/50 backdrop-blur-sm">
             <h3 class="text-slate-400 font-bold text-xs uppercase tracking-wider mb-4">✅ สำเร็จแล้ว</h3>
             <div id="done-list" class="opacity-70 space-y-2"></div>
@@ -109,7 +129,11 @@
     </div>
 
     <script>
-        const firebaseConfig = { databaseURL: "https://classflow-6e029-default-rtdb.asia-southeast1.firebasedatabase.app/", projectId: "classflow-6e029" };
+        // --- 1. CONFIG & INIT ---
+        const firebaseConfig = { 
+            databaseURL: "https://classflow-6e029-default-rtdb.asia-southeast1.firebasedatabase.app/", 
+            projectId: "classflow-6e029" 
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -120,49 +144,60 @@
         if (!currentUser) { window.location.href = 'login.html'; }
         document.getElementById('user-display-small').innerText = `👤 ${currentUser} • เลขที่ ${currentNo}`;
 
-        // ฟังก์ชันเรียก API Vercel เพื่อเช็คงานซ้ำ
-        async function checkDuplicateWithAI(newText) {
-            try {
-                const snap = await db.ref(`user_tasks/${currentNo}`).once('value');
-                const data = snap.val() || {};
-                const tasks = Object.values(data).filter(t => !t.isSentCopy).map(t => t.text);
-                
-                if (tasks.length === 0) return false;
+        // --- 2. AI SIMILARITY LOGIC (ทำงานภายในเครื่องเลย ไม่ต้องรอ API) ---
+        const clean = (str) => str.toLowerCase().replace(/\s+/g, "").replace(/[^\u0E00-\u0E7Fa-z0-9]/g, "").replace(/[ะาิีึืุูเแโใไำะ]/g, "");
+        const getNumbers = (str) => str.replace(/[^0-9]/g, "");
 
-                const response = await fetch("/api/check-duplicate", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ newText, existingTasks: tasks })
-                });
-                const resData = await response.json();
-                return resData.isDuplicate;
-            } catch (e) { console.error("API Error", e); return false; }
+        function getDiceScore(str1, str2) {
+            const s1 = clean(str1); const s2 = clean(str2);
+            if (s1 === s2) return 1.0;
+            if (s1.length < 2 || s2.length < 2) return 0;
+            const b1 = new Set();
+            for (let i = 0; i < s1.length - 1; i++) b1.add(s1.substring(i, i + 2));
+            let intersect = 0;
+            for (let i = 0; i < s2.length - 1; i++) { if (b1.has(s2.substring(i, i + 2))) intersect++; }
+            return (2.0 * intersect) / (s1.length - 1 + s2.length - 1);
         }
 
+        async function checkDuplicateAI(newText) {
+            const snap = await db.ref(`user_tasks/${currentNo}`).once('value');
+            const tasks = Object.values(snap.val() || {}).filter(t => !t.isSentCopy).map(t => t.text);
+            const numNew = getNumbers(newText);
+
+            for (let oldText of tasks) {
+                const numOld = getNumbers(oldText);
+                if (numNew && numOld && numNew !== numOld) continue; // เลขไม่ตรงกัน ไม่ซ้ำ
+                if (getDiceScore(newText, oldText) > 0.7) return true;
+            }
+            return false;
+        }
+
+        // --- 3. TASK ACTIONS ---
         async function addPersonalTask() {
             const el = document.getElementById('personal-input');
             const pri = document.getElementById('personal-priority').value;
-            const text = el.value.trim();
-            if(!text) return;
+            if(!el.value.trim()) return;
             
             document.getElementById('ai-status-personal').classList.remove('hidden');
-            const isDup = await checkDuplicateWithAI(text);
+            const isDup = await checkDuplicateAI(el.value);
             document.getElementById('ai-status-personal').classList.add('hidden');
 
             if(isDup && !confirm("🤖 AI: พบงานที่คล้ายกัน ยืนยันจะจดซ้ำไหม?")) return;
 
-            await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'mine', isDone: false, sender: currentUser, priority: pri, timestamp: Date.now() });
+            await db.ref(`user_tasks/${currentNo}`).push({ 
+                text: el.value.trim(), type: 'mine', isDone: false, 
+                sender: currentUser, priority: pri, timestamp: Date.now() 
+            });
             el.value = '';
         }
 
         async function addCommunityTask() {
             const el = document.getElementById('commu-input');
             const pri = document.getElementById('commu-priority').value;
-            const text = el.value.trim();
-            if(!text) return;
+            if(!el.value.trim()) return;
 
             document.getElementById('ai-status-commu').classList.remove('hidden');
-            const isDup = await checkDuplicateWithAI(text);
+            const isDup = await checkDuplicateAI(el.value);
             document.getElementById('ai-status-commu').classList.add('hidden');
 
             if(isDup && !confirm("🤖 AI: งานนี้อาจจะเคยประกาศไปแล้ว ยืนยันจะประกาศซ้ำไหม?")) return;
@@ -171,12 +206,33 @@
             const students = snap.val();
             const ts = Date.now();
             const requestId = 'REQ' + ts;
-            for (let no in students) { db.ref(`user_tasks/${no}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, requestId }); }
+            const text = el.value.trim();
+
+            for (let no in students) { 
+                db.ref(`user_tasks/${no}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, requestId }); 
+            }
+            // เก็บ Copy ไว้ที่ตัวเองในหน้า "ประวัติส่ง"
             await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, isSentCopy: true, subtype: 'commu', requestId });
             el.value = ''; alert("ประกาศเรียบร้อย!");
         }
 
-        // --- Logic UI อื่นๆ ---
+        async function addPrivateTask() {
+            const targetNo = document.getElementById('friend-select').value;
+            const targetName = document.getElementById('friend-select').options[document.getElementById('friend-select').selectedIndex].text;
+            const text = document.getElementById('private-input').value.trim();
+            const pri = document.getElementById('private-priority').value;
+            if(!targetNo || !text) return alert("ข้อมูลไม่ครบ");
+
+            const ts = Date.now();
+            const requestId = 'REQ' + ts;
+            const taskData = { text, type: 'private', sender: currentUser, isDone: false, priority: pri, timestamp: ts, requestId };
+            
+            await db.ref(`user_tasks/${targetNo}`).push(taskData);
+            await db.ref(`user_tasks/${currentNo}`).push({ ...taskData, isSentCopy: true, subtype: 'private', receiverName: targetName, receiverNo: targetNo, requestId });
+            document.getElementById('private-input').value = ''; alert("ส่งแล้ว!");
+        }
+
+        // --- 4. UI & FILTERS ---
         function setFilter(type) {
             currentFilter = type;
             ['all', 'mine', 'sent'].forEach(t => document.getElementById('btn-' + t).className = (t === type) ? 'tab-btn tab-active' : 'tab-btn');
@@ -187,33 +243,15 @@
             loadTasks();
         }
 
-        db.ref('students').on('value', snap => {
-            const select = document.getElementById('friend-select');
-            select.innerHTML = '<option value="" disabled selected>เลือกเพื่อน...</option>';
-            Object.entries(snap.val() || {}).forEach(([no, data]) => { if(data.name !== currentUser) select.add(new Option(`${no}. ${data.name}`, no)); });
-        });
-
-        async function addPrivateTask() {
-            const targetNo = document.getElementById('friend-select').value;
-            const targetName = document.getElementById('friend-select').options[document.getElementById('friend-select').selectedIndex].text;
-            const text = document.getElementById('private-input').value.trim();
-            const pri = document.getElementById('private-priority').value;
-            if(!targetNo || !text) return alert("ข้อมูลไม่ครบ");
-            const ts = Date.now();
-            const requestId = 'REQ' + ts;
-            const taskData = { text, type: 'private', sender: currentUser, isDone: false, priority: pri, timestamp: ts, requestId };
-            await db.ref(`user_tasks/${targetNo}`).push(taskData);
-            await db.ref(`user_tasks/${currentNo}`).push({ ...taskData, isSentCopy: true, subtype: 'private', receiverName: targetName, receiverNo: targetNo, requestId });
-            document.getElementById('private-input').value = ''; alert("ส่งแล้ว!");
-        }
-
         function loadTasks() {
             db.ref(`user_tasks/${currentNo}`).off();
             db.ref(`user_tasks/${currentNo}`).on('value', (snap) => {
                 const todoDiv = document.getElementById('todo-list');
                 const doneDiv = document.getElementById('done-list');
                 todoDiv.innerHTML = ''; doneDiv.innerHTML = '';
+                
                 const tasks = Object.entries(snap.val() || {}).sort((a,b) => b[1].timestamp - a[1].timestamp);
+                
                 tasks.forEach(([id, t]) => {
                     let isVisible = false;
                     if (currentFilter === 'all') isVisible = !t.isSentCopy;
@@ -221,46 +259,68 @@
                     else if (currentFilter === 'sent') isVisible = t.isSentCopy === true;
 
                     if (isVisible) {
-                        let textStyle = t.priority == 3 ? "text-rose-700 font-bold" : (t.priority == 2 ? "text-orange-700 font-semibold" : "text-slate-700 font-medium");
-                        let badgeColor = t.priority == 3 ? "bg-rose-500 text-white" : (t.priority == 2 ? "bg-orange-100 text-orange-600" : "bg-emerald-50 text-emerald-600");
-                        let emoji = t.priority == 3 ? '🔥' : (t.priority == 2 ? '⚡' : '☘️');
-                        let label = t.isSentCopy ? (t.subtype === 'commu' ? '📢 ประกาศส่วนรวม' : `🔐 ส่งถึง: ${t.receiverName}`) : (t.type === 'mine' ? '📝 จดเอง' : `👤 BY ${t.sender}`);
+                        const isHigh = t.priority == 3;
+                        const isMid = t.priority == 2;
+                        let textStyle = isHigh ? "text-rose-700 font-bold" : (isMid ? "text-orange-700 font-semibold" : "text-slate-700 font-medium");
+                        let badge = isHigh ? "bg-rose-500 text-white" : (isMid ? "bg-orange-100 text-orange-600" : "bg-emerald-50 text-emerald-600");
+                        let emoji = isHigh ? '🔥' : (isMid ? '⚡' : '☘️');
+                        let label = t.isSentCopy ? (t.subtype === 'commu' ? '📢 ประกาศรวม' : `🔐 ส่งถึง: ${t.receiverName}`) : (t.type === 'mine' ? '📝 จดเอง' : `👤 BY ${t.sender}`);
                         let border = t.type === 'private' ? 'border-l-[6px] border-pink-500' : (t.type === 'mine' ? 'border-l-[6px] border-emerald-500' : 'border-l-[6px] border-blue-500');
+
                         const deleteBtn = t.isSentCopy 
-                            ? `<button onclick="unsend('${id}', '${t.requestId}', '${t.subtype}', '${t.receiverNo}')" class="absolute right-3 top-4 text-[11px] font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200">ยกเลิก</button>`
+                            ? `<button onclick="unsend('${id}', '${t.requestId}', '${t.subtype}', '${t.receiverNo}')" class="absolute right-3 top-4 text-[10px] font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200">ยกเลิก</button>`
                             : `<button onclick="del('${id}')" class="absolute right-3 top-4 text-slate-300 hover:text-rose-400 p-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>`;
-                        const html = `<div class="task-item task-anim ${border}">${t.isSentCopy ? '' : `<div class="mr-4 mt-0.5"><input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${id}', ${t.isDone})"></div>`}<div class="flex-1 min-w-0 pr-12"><div class="flex items-center gap-2 mb-1.5"><span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeColor}">${emoji} ${t.priority == 3 ? 'ด่วนมากกก' : t.priority == 2 ? 'งานด่วน' : 'ชิวๆ'}</span><span class="text-[10px] text-slate-400 font-bold uppercase truncate">${label}</span></div><p class="text-[15px] leading-relaxed ${t.isDone ? 'line-through text-slate-300' : textStyle} break-words">${t.text}</p></div>${deleteBtn}</div>`;
+
+                        const html = `
+                            <div class="task-item ${border}">
+                                ${t.isSentCopy ? '' : `<div class="mr-4 mt-0.5"><input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${id}', ${t.isDone})"></div>`}
+                                <div class="flex-1 min-w-0 pr-12">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-md ${badge}">${emoji} ${isHigh ? 'ด่วนมาก' : isMid ? 'ด่วน' : 'ชิวๆ'}</span>
+                                        <span class="text-[9px] text-slate-400 font-bold uppercase truncate">${label}</span>
+                                    </div>
+                                    <p class="text-[15px] leading-relaxed ${t.isDone ? 'line-through text-slate-300' : textStyle} break-words">${t.text}</p>
+                                </div>
+                                ${deleteBtn}
+                            </div>`;
+                        
                         if (t.isDone && currentFilter !== 'sent') { doneDiv.innerHTML += html; } else { todoDiv.innerHTML += html; }
                     }
                 });
             });
         }
 
+        // --- 5. UTILS ---
         async function unsend(logId, requestId, subtype, receiverNo) {
-            if(!confirm("ต้องการยกเลิกการส่งงานนี้ใช่หรือไม่?")) return;
-            try {
-                await db.ref(`user_tasks/${currentNo}/${logId}`).remove();
-                if(subtype === 'commu') {
-                    const snap = await db.ref('students').once('value');
-                    const students = snap.val();
-                    for(let no in students) { await removeByRequestId(no, requestId); }
-                } else { await removeByRequestId(receiverNo, requestId); }
-                alert("ยกเลิกการส่งแล้ว");
-            } catch (e) { alert("เกิดข้อผิดพลาด"); }
+            if(!confirm("ยกเลิกการส่งงานนี้? (งานจะหายไปจากเครื่องเพื่อนด้วย)")) return;
+            await db.ref(`user_tasks/${currentNo}/${logId}`).remove();
+            if(subtype === 'commu') {
+                const snap = await db.ref('students').once('value');
+                for(let no in snap.val()) { await removeByReq(no, requestId); }
+            } else { await removeByReq(receiverNo, requestId); }
+            alert("ยกเลิกสำเร็จ");
         }
 
-        async function removeByRequestId(userNo, reqId) {
+        async function removeByReq(userNo, reqId) {
             const snap = await db.ref(`user_tasks/${userNo}`).once('value');
-            const tasks = snap.val();
-            if(!tasks) return;
+            const tasks = snap.val(); if(!tasks) return;
             const updates = {};
-            Object.entries(tasks).forEach(([id, data]) => { if(data.requestId === reqId) updates[id] = null; });
-            if (Object.keys(updates).length > 0) { await db.ref(`user_tasks/${userNo}`).update(updates); }
+            Object.entries(tasks).forEach(([id, d]) => { if(d.requestId === reqId) updates[id] = null; });
+            await db.ref(`user_tasks/${userNo}`).update(updates);
         }
+
+        db.ref('students').on('value', snap => {
+            const select = document.getElementById('friend-select');
+            select.innerHTML = '<option value="" disabled selected>เลือกเพื่อน...</option>';
+            Object.entries(snap.val() || {}).forEach(([no, data]) => { 
+                if(data.name !== currentUser) select.add(new Option(`${no}. ${data.name}`, no)); 
+            });
+        });
 
         function toggle(id, status) { db.ref(`user_tasks/${currentNo}/${id}`).update({ isDone: !status }); }
         function del(id) { if(confirm("ลบงานนี้?")) db.ref(`user_tasks/${currentNo}/${id}`).remove(); }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        
         setFilter('all');
     </script>
 </body>
