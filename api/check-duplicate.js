@@ -1,19 +1,27 @@
 export default async function handler(req, res) {
   try {
-    if (req.method !== 'POST') {
+    // ✅ method check
+    if (req.method !== "POST") {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
+    // ✅ env
     const apiKey = process.env.OPENAI_API_KEY;
-
     if (!apiKey) {
-      return res.status(500).json({ error: "ไม่มี API KEY" });
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
     }
 
-    const { existingTasks = [], newText = "" } = req.body;
+    // ✅ กัน undefined
+    const { existingTasks = [], newText = "" } = req.body || {};
 
-    console.log("BODY:", req.body);
+    console.log("REQ BODY:", req.body);
 
+    // ✅ ถ้าไม่มี task เลย ไม่ต้องเช็ค
+    if (!newText || existingTasks.length === 0) {
+      return res.status(200).json({ isDuplicate: false });
+    }
+
+    // ✅ ยิง OpenAI
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -23,27 +31,51 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "ตอบ TRUE หรือ FALSE เท่านั้น" },
-          { role: "user", content: `รายการ: ${existingTasks.join(", ")} | ใหม่: ${newText}` }
-        ]
+          {
+            role: "system",
+            content: "คุณคือ AI ตรวจสอบงานซ้ำ ตอบแค่ TRUE หรือ FALSE เท่านั้น"
+          },
+          {
+            role: "user",
+            content: `รายการงานเดิม: ${existingTasks.join(", ")} | งานใหม่: ${newText}`
+          }
+        ],
+        temperature: 0
       })
     });
 
-    const data = await response.json();
-    console.log("AI:", data);
+    // ✅ แปลง response
+    const text = await response.text();
+    console.log("RAW OPENAI:", text);
 
-    if (!data.choices || !data.choices[0]) {
-      return res.status(500).json({ error: "AI response พัง", full: data });
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(500).json({
+        error: "OpenAI ไม่ได้ตอบ JSON",
+        raw: text
+      });
     }
 
-    const result = data.choices[0].message.content;
+    // ✅ กัน response พัง
+    if (!data.choices || !data.choices[0]) {
+      return res.status(500).json({
+        error: "AI response พัง",
+        full: data
+      });
+    }
+
+    const result = data.choices[0].message.content || "";
 
     return res.status(200).json({
-      isDuplicate: result.includes("TRUE")
+      isDuplicate: result.toUpperCase().includes("TRUE")
     });
 
   } catch (err) {
-    console.error("ERROR:", err);
-    return res.status(500).json({ error: err.message });
+    console.error("SERVER ERROR:", err);
+    return res.status(500).json({
+      error: err.message
+    });
   }
 }
