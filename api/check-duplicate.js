@@ -1,17 +1,19 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: "ยังไม่ได้ตั้งค่า OPENAI_API_KEY ใน Vercel" });
-  }
-
-  const { existingTasks, newText } = req.body;
-
   try {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: "Method Not Allowed" });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "ไม่มี API KEY" });
+    }
+
+    const { existingTasks = [], newText = "" } = req.body;
+
+    console.log("BODY:", req.body);
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -19,37 +21,29 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // ใช้ตัวนี้แทน gpt-3.5
+        model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: "ตอบแค่ TRUE หรือ FALSE เท่านั้น ห้ามอธิบาย"
-          },
-          {
-            role: "user",
-            content: `รายการงานเดิม: [${existingTasks.join(", ")}]
-งานใหม่: "${newText}"
-ซ้ำหรือไม่?`
-          }
-        ],
-        temperature: 0
+          { role: "system", content: "ตอบ TRUE หรือ FALSE เท่านั้น" },
+          { role: "user", content: `รายการ: ${existingTasks.join(", ")} | ใหม่: ${newText}` }
+        ]
       })
     });
 
     const data = await response.json();
+    console.log("AI:", data);
 
-    if (data.error) {
-      return res.status(500).json({ error: data.error.message });
+    if (!data.choices || !data.choices[0]) {
+      return res.status(500).json({ error: "AI response พัง", full: data });
     }
 
-    const result = data.choices[0].message.content.trim().toUpperCase();
+    const result = data.choices[0].message.content;
 
     return res.status(200).json({
       isDuplicate: result.includes("TRUE")
     });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "AI ล่มหรือเรียกไม่ได้" });
+    console.error("ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
