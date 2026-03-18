@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ClassFlow AI Safe - Vercel Edition</title>
+    <title>ClassFlow AI Safe - Official</title>
+    
     <link rel="icon" type="image/png" href="icon1.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
         body { 
@@ -36,19 +39,13 @@
 
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-white/50 px-4 py-4 shadow-sm">
         <div class="max-w-xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM14 17H7V15H14V17ZM17 13H7V11H17V13ZM17 9H7V7H17V9Z" fill="url(#grad1)"/>
-                    <defs>
-                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                </svg>
+            <div class="flex items-center gap-3">
+                <img src="icon1.png" alt="Logo" class="w-9 h-9 object-contain rounded-lg shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/591/591844.png'">
                 <div>
-                    <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500">ClassFlow AI.</h1>
-                    <p id="user-display-small" class="text-[10px] text-slate-500 font-medium uppercase tracking-wider"></p>
+                    <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-pink-500">
+                        ClassFlow AI.
+                    </h1>
+                    <p id="user-display-small" class="text-[11px] text-slate-500 font-medium uppercase tracking-wider"></p>
                 </div>
             </div>
             <button onclick="logout()" class="text-xs font-bold text-rose-500 border-2 border-rose-500 px-4 py-2 rounded-xl hover:bg-rose-500 hover:text-white transition-all active:scale-95">LOGOUT</button>
@@ -144,11 +141,11 @@
         if (!currentUser) { window.location.href = 'login.html'; }
         document.getElementById('user-display-small').innerText = `👤 ${currentUser} • เลขที่ ${currentNo}`;
 
-        // --- 2. AI SIMILARITY LOGIC (ทำงานภายในเครื่องเลย ไม่ต้องรอ API) ---
+        // --- 2. AI SMART DUPLICATE LOGIC ---
         const clean = (str) => str.toLowerCase().replace(/\s+/g, "").replace(/[^\u0E00-\u0E7Fa-z0-9]/g, "").replace(/[ะาิีึืุูเแโใไำะ]/g, "");
         const getNumbers = (str) => str.replace(/[^0-9]/g, "");
 
-        function getDiceScore(str1, str2) {
+        function getSimilarity(str1, str2) {
             const s1 = clean(str1); const s2 = clean(str2);
             if (s1 === s2) return 1.0;
             if (s1.length < 2 || s2.length < 2) return 0;
@@ -163,57 +160,46 @@
             const snap = await db.ref(`user_tasks/${currentNo}`).once('value');
             const tasks = Object.values(snap.val() || {}).filter(t => !t.isSentCopy).map(t => t.text);
             const numNew = getNumbers(newText);
-
             for (let oldText of tasks) {
                 const numOld = getNumbers(oldText);
-                if (numNew && numOld && numNew !== numOld) continue; // เลขไม่ตรงกัน ไม่ซ้ำ
-                if (getDiceScore(newText, oldText) > 0.7) return true;
+                if (numNew && numOld && numNew !== numOld) continue; // เลขหน้าต่างกัน ไม่ถือว่าซ้ำ
+                if (getSimilarity(newText, oldText) > 0.7) return true;
             }
             return false;
         }
 
-        // --- 3. TASK ACTIONS ---
+        // --- 3. ACTIONS ---
         async function addPersonalTask() {
             const el = document.getElementById('personal-input');
             const pri = document.getElementById('personal-priority').value;
-            if(!el.value.trim()) return;
-            
+            const text = el.value.trim();
+            if(!text) return;
             document.getElementById('ai-status-personal').classList.remove('hidden');
-            const isDup = await checkDuplicateAI(el.value);
+            const isDup = await checkDuplicateAI(text);
             document.getElementById('ai-status-personal').classList.add('hidden');
-
             if(isDup && !confirm("🤖 AI: พบงานที่คล้ายกัน ยืนยันจะจดซ้ำไหม?")) return;
-
-            await db.ref(`user_tasks/${currentNo}`).push({ 
-                text: el.value.trim(), type: 'mine', isDone: false, 
-                sender: currentUser, priority: pri, timestamp: Date.now() 
-            });
+            await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'mine', isDone: false, sender: currentUser, priority: pri, timestamp: Date.now() });
             el.value = '';
         }
 
         async function addCommunityTask() {
             const el = document.getElementById('commu-input');
             const pri = document.getElementById('commu-priority').value;
-            if(!el.value.trim()) return;
-
+            const text = el.value.trim();
+            if(!text) return;
             document.getElementById('ai-status-commu').classList.remove('hidden');
-            const isDup = await checkDuplicateAI(el.value);
+            const isDup = await checkDuplicateAI(text);
             document.getElementById('ai-status-commu').classList.add('hidden');
-
-            if(isDup && !confirm("🤖 AI: งานนี้อาจจะเคยประกาศไปแล้ว ยืนยันจะประกาศซ้ำไหม?")) return;
-
+            if(isDup && !confirm("🤖 AI: งานนี้อาจเคยประกาศแล้ว ยืนยันจะประกาศซ้ำไหม?")) return;
             const snap = await db.ref('students').once('value');
             const students = snap.val();
             const ts = Date.now();
             const requestId = 'REQ' + ts;
-            const text = el.value.trim();
-
             for (let no in students) { 
                 db.ref(`user_tasks/${no}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, requestId }); 
             }
-            // เก็บ Copy ไว้ที่ตัวเองในหน้า "ประวัติส่ง"
             await db.ref(`user_tasks/${currentNo}`).push({ text, type: 'normal', isDone: false, sender: currentUser, priority: pri, timestamp: ts, isSentCopy: true, subtype: 'commu', requestId });
-            el.value = ''; alert("ประกาศเรียบร้อย!");
+            el.value = ''; alert("ประกาศแล้ว!");
         }
 
         async function addPrivateTask() {
@@ -221,18 +207,16 @@
             const targetName = document.getElementById('friend-select').options[document.getElementById('friend-select').selectedIndex].text;
             const text = document.getElementById('private-input').value.trim();
             const pri = document.getElementById('private-priority').value;
-            if(!targetNo || !text) return alert("ข้อมูลไม่ครบ");
-
+            if(!targetNo || !text) return alert("เลือกเพื่อนและพิมพ์ข้อความ");
             const ts = Date.now();
             const requestId = 'REQ' + ts;
             const taskData = { text, type: 'private', sender: currentUser, isDone: false, priority: pri, timestamp: ts, requestId };
-            
             await db.ref(`user_tasks/${targetNo}`).push(taskData);
             await db.ref(`user_tasks/${currentNo}`).push({ ...taskData, isSentCopy: true, subtype: 'private', receiverName: targetName, receiverNo: targetNo, requestId });
-            document.getElementById('private-input').value = ''; alert("ส่งแล้ว!");
+            document.getElementById('private-input').value = ''; alert("ส่งงานสำเร็จ!");
         }
 
-        // --- 4. UI & FILTERS ---
+        // --- 4. CORE LOGIC ---
         function setFilter(type) {
             currentFilter = type;
             ['all', 'mine', 'sent'].forEach(t => document.getElementById('btn-' + t).className = (t === type) ? 'tab-btn tab-active' : 'tab-btn');
@@ -249,9 +233,7 @@
                 const todoDiv = document.getElementById('todo-list');
                 const doneDiv = document.getElementById('done-list');
                 todoDiv.innerHTML = ''; doneDiv.innerHTML = '';
-                
                 const tasks = Object.entries(snap.val() || {}).sort((a,b) => b[1].timestamp - a[1].timestamp);
-                
                 tasks.forEach(([id, t]) => {
                     let isVisible = false;
                     if (currentFilter === 'all') isVisible = !t.isSentCopy;
@@ -259,40 +241,24 @@
                     else if (currentFilter === 'sent') isVisible = t.isSentCopy === true;
 
                     if (isVisible) {
-                        const isHigh = t.priority == 3;
-                        const isMid = t.priority == 2;
-                        let textStyle = isHigh ? "text-rose-700 font-bold" : (isMid ? "text-orange-700 font-semibold" : "text-slate-700 font-medium");
-                        let badge = isHigh ? "bg-rose-500 text-white" : (isMid ? "bg-orange-100 text-orange-600" : "bg-emerald-50 text-emerald-600");
-                        let emoji = isHigh ? '🔥' : (isMid ? '⚡' : '☘️');
+                        let textStyle = t.priority == 3 ? "text-rose-700 font-bold" : (t.priority == 2 ? "text-orange-700 font-semibold" : "text-slate-700 font-medium");
+                        let badgeColor = t.priority == 3 ? "bg-rose-500 text-white" : (t.priority == 2 ? "bg-orange-100 text-orange-600" : "bg-emerald-50 text-emerald-600");
+                        let emoji = t.priority == 3 ? '🔥' : (t.priority == 2 ? '⚡' : '☘️');
                         let label = t.isSentCopy ? (t.subtype === 'commu' ? '📢 ประกาศรวม' : `🔐 ส่งถึง: ${t.receiverName}`) : (t.type === 'mine' ? '📝 จดเอง' : `👤 BY ${t.sender}`);
                         let border = t.type === 'private' ? 'border-l-[6px] border-pink-500' : (t.type === 'mine' ? 'border-l-[6px] border-emerald-500' : 'border-l-[6px] border-blue-500');
-
-                        const deleteBtn = t.isSentCopy 
+                        const delUI = t.isSentCopy 
                             ? `<button onclick="unsend('${id}', '${t.requestId}', '${t.subtype}', '${t.receiverNo}')" class="absolute right-3 top-4 text-[10px] font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200">ยกเลิก</button>`
-                            : `<button onclick="del('${id}')" class="absolute right-3 top-4 text-slate-300 hover:text-rose-400 p-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>`;
-
-                        const html = `
-                            <div class="task-item ${border}">
-                                ${t.isSentCopy ? '' : `<div class="mr-4 mt-0.5"><input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${id}', ${t.isDone})"></div>`}
-                                <div class="flex-1 min-w-0 pr-12">
-                                    <div class="flex items-center gap-2 mb-1.5">
-                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-md ${badge}">${emoji} ${isHigh ? 'ด่วนมาก' : isMid ? 'ด่วน' : 'ชิวๆ'}</span>
-                                        <span class="text-[9px] text-slate-400 font-bold uppercase truncate">${label}</span>
-                                    </div>
-                                    <p class="text-[15px] leading-relaxed ${t.isDone ? 'line-through text-slate-300' : textStyle} break-words">${t.text}</p>
-                                </div>
-                                ${deleteBtn}
-                            </div>`;
+                            : `<button onclick="del('${id}')" class="absolute right-3 top-4 text-slate-300 hover:text-rose-400 p-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" /></svg></button>`;
                         
+                        const html = `<div class="task-item ${border}">${t.isSentCopy ? '' : `<div class="mr-4 mt-0.5"><input type="checkbox" class="custom-check" ${t.isDone ? 'checked' : ''} onchange="toggle('${id}', ${t.isDone})"></div>`}<div class="flex-1 min-w-0 pr-12"><div class="flex items-center gap-2 mb-1.5"><span class="text-[9px] font-bold px-2 py-0.5 rounded-md ${badgeColor}">${emoji} ${t.priority == 3 ? 'ด่วนมาก' : t.priority == 2 ? 'ด่วน' : 'ชิวๆ'}</span><span class="text-[9px] text-slate-400 font-bold uppercase truncate">${label}</span></div><p class="text-[15px] leading-relaxed ${t.isDone ? 'line-through text-slate-300' : textStyle} break-words">${t.text}</p></div>${delUI}</div>`;
                         if (t.isDone && currentFilter !== 'sent') { doneDiv.innerHTML += html; } else { todoDiv.innerHTML += html; }
                     }
                 });
             });
         }
 
-        // --- 5. UTILS ---
         async function unsend(logId, requestId, subtype, receiverNo) {
-            if(!confirm("ยกเลิกการส่งงานนี้? (งานจะหายไปจากเครื่องเพื่อนด้วย)")) return;
+            if(!confirm("ยกเลิกการส่ง? (งานจะหายจากเครื่องเพื่อนด้วย)")) return;
             await db.ref(`user_tasks/${currentNo}/${logId}`).remove();
             if(subtype === 'commu') {
                 const snap = await db.ref('students').once('value');
@@ -312,15 +278,12 @@
         db.ref('students').on('value', snap => {
             const select = document.getElementById('friend-select');
             select.innerHTML = '<option value="" disabled selected>เลือกเพื่อน...</option>';
-            Object.entries(snap.val() || {}).forEach(([no, data]) => { 
-                if(data.name !== currentUser) select.add(new Option(`${no}. ${data.name}`, no)); 
-            });
+            Object.entries(snap.val() || {}).forEach(([no, data]) => { if(data.name !== currentUser) select.add(new Option(`${no}. ${data.name}`, no)); });
         });
 
         function toggle(id, status) { db.ref(`user_tasks/${currentNo}/${id}`).update({ isDone: !status }); }
         function del(id) { if(confirm("ลบงานนี้?")) db.ref(`user_tasks/${currentNo}/${id}`).remove(); }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
-        
         setFilter('all');
     </script>
 </body>
