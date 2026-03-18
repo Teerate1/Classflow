@@ -1,98 +1,92 @@
 export default async function handler(req, res) {
-  // ✅ อนุญาตแค่ POST
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
   try {
-    // ✅ เช็ค API KEY
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      console.error("❌ Missing GROQ_API_KEY");
-      return res.status(500).json({ error: "Server config error" });
+    // ✅ method check
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    // ✅ รับข้อมูล
-    const { newText = "", existingTasks = [] } = req.body || {};
+    // ✅ env
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "Missing GROQ_API_KEY" });
+    }
 
+    // ✅ รับค่า + กัน undefined
+    const { existingTasks = [], newText = "" } = req.body || {};
+
+    console.log("📥 INPUT:", { newText, existingTasks });
+
+    // ✅ ถ้าไม่มีอะไรให้เช็ค
     if (!newText || existingTasks.length === 0) {
       return res.status(200).json({ isDuplicate: false });
     }
 
-    console.log("📥 INPUT:", { newText, existingTasks });
-
-    // 🔥 ยิง Groq
+    // ✅ ยิง GROQ
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",
+        model: "llama-3.1-8b-instant", // 🔥 ตัวใหม่
         messages: [
           {
             role: "system",
-            content: `
-คุณคือ AI ตรวจสอบ "งานซ้ำ"
-
-กฎ:
-- ถ้าความหมายเหมือนกัน = TRUE
-- ถ้าแตกต่าง = FALSE
-- ตอบแค่ TRUE หรือ FALSE เท่านั้น ห้ามมีคำอื่น
-            `
+            content: "คุณคือ AI ตรวจสอบงานซ้ำ ตอบแค่ TRUE หรือ FALSE เท่านั้น"
           },
           {
             role: "user",
-            content: `รายการเดิม: ${existingTasks.join(" | ")}\nงานใหม่: ${newText}`
+            content: `รายการงานเดิม: ${existingTasks.join(", ")} | งานใหม่: ${newText}`
           }
         ],
         temperature: 0
       })
     });
 
-    // ✅ อ่าน text ก่อน (กันพัง)
-    const raw = await response.text();
-    console.log("📡 RAW GROQ:", raw);
+    // ✅ อ่าน raw ก่อน
+    const text = await response.text();
+    console.log("📡 RAW GROQ:", text);
 
+    // ✅ เช็ค status
+    if (!response.ok) {
+      return res.status(500).json({
+        error: "Groq API error",
+        raw: text
+      });
+    }
+
+    // ✅ parse JSON
     let data;
     try {
-      data = JSON.parse(raw);
-    } catch (e) {
+      data = JSON.parse(text);
+    } catch {
       return res.status(500).json({
-        error: "Invalid JSON from AI",
-        raw
+        error: "Groq ไม่ได้ตอบ JSON",
+        raw: text
       });
     }
 
-    // ❌ ถ้า API error
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error?.message || "Groq API error",
-        full: data
-      });
-    }
-
-    // ❌ response แปลก
+    // ✅ กัน response พัง
     if (!data.choices || !data.choices[0]) {
       return res.status(500).json({
-        error: "Invalid AI response",
+        error: "AI response พัง",
         full: data
       });
     }
 
-    const result = data.choices[0].message.content.trim().toUpperCase();
+    const result = data.choices[0].message.content || "";
 
     console.log("🤖 AI RESULT:", result);
 
     return res.status(200).json({
-      isDuplicate: result.includes("TRUE")
+      isDuplicate: result.toUpperCase().includes("TRUE")
     });
 
   } catch (err) {
-    console.error("🔥 SERVER ERROR:", err);
+    console.error("💥 SERVER ERROR:", err);
     return res.status(500).json({
-      error: err.message || "Internal Server Error"
+      error: err.message
     });
   }
 }
