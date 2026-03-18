@@ -5,13 +5,12 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    // ✅ env
-    const apiKey = process.env.OPENAI_API_KEY;
+    // ✅ ใช้ GROQ_API_KEY แทน
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+      return res.status(500).json({ error: "Missing GROQ_API_KEY" });
     }
 
-    // ✅ กัน undefined
     const { existingTasks = [], newText = "" } = req.body || {};
 
     console.log("REQ BODY:", req.body);
@@ -21,19 +20,19 @@ export default async function handler(req, res) {
       return res.status(200).json({ isDuplicate: false });
     }
 
-    // ✅ ยิง OpenAI
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 🔥 ยิง Groq (เปลี่ยน URL + model)
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "llama3-70b-8192",
         messages: [
           {
             role: "system",
-            content: "คุณคือ AI ตรวจสอบงานซ้ำ ตอบแค่ TRUE หรือ FALSE เท่านั้น"
+            content: "คุณคือ AI ตรวจสอบงานซ้ำ ตอบแค่ TRUE หรือ FALSE เท่านั้น ห้ามอธิบาย"
           },
           {
             role: "user",
@@ -44,21 +43,27 @@ export default async function handler(req, res) {
       })
     });
 
-    // ✅ แปลง response
     const text = await response.text();
-    console.log("RAW OPENAI:", text);
+    console.log("RAW GROQ:", text);
 
     let data;
     try {
       data = JSON.parse(text);
     } catch {
       return res.status(500).json({
-        error: "OpenAI ไม่ได้ตอบ JSON",
+        error: "Groq ไม่ได้ตอบ JSON",
         raw: text
       });
     }
 
-    // ✅ กัน response พัง
+    // 🔥 กัน error จาก API โดยตรง
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error?.message || "Groq API error",
+        full: data
+      });
+    }
+
     if (!data.choices || !data.choices[0]) {
       return res.status(500).json({
         error: "AI response พัง",
